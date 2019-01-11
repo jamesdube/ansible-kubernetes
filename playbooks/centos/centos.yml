@@ -1,0 +1,10 @@
+---
+
+- hosts: localhost
+  tasks: 
+    - name: run a centos container
+      docker_container:
+        name: my-centos
+        image: "centos"
+        state: started
+        command: docker run -i -t centos
