@@ -1,0 +1,16 @@
+---
+- hosts: master-node
+  tasks:
+  - name: Install Docker
+    package:
+      name: docker
+      state: latest
+    become: yes
+
+  - name: Start Docker service
+    service: 
+      name: docker
+      state: started
+      enabled: yes
+    become: yes
+

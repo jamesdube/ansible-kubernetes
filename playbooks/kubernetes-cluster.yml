@@ -1,0 +1,100 @@
+---
+
+# disable selinux
+- hosts: kubernetes
+  tasks:
+  - name: disable Selinux
+    selinux: 
+      state: disabled
+
+# enable br_netfilter Kernel Module
+  - name: enable br_netfilter kernel module
+    modprobe:
+      name: br_netfilter
+      state: present
+
+# enable packet forwarding
+  - name: enable packet forwarding
+    command: echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables
+
+# set hostnames
+  - name: change nodes hostnames
+    hostname:
+      name: "{{ inventory_hostname }}"
+
+# add cluster ips to hosts file
+  - name: add IP addresses of all kubernetes nodes to all hosts
+    lineinfile:
+      dest: /etc/hosts
+      regexp: '.*{{ item }}$'
+      line: "{{ hostvars[item].ansible_host }} {{item}}"
+      state: present
+    when: hostvars[item].ansible_host is defined
+    with_items: "{{ groups.kubernetes }}"
+
+# disable firewall
+  - name: disable Firewall
+    systemd:
+      name: firewalld
+      state: stopped
+      enabled: no
+
+# disable swap
+  - name: disable Swap
+    mount:
+      name: swap
+      fstype: swap
+      state: absent
+
+# reboot
+  - name: reboot hosts
+    reboot:
+
+# install docker
+  - name: install docker
+    package:
+      name: docker
+      state: latest
+    become: yes
+
+# install kubernetes
+  - name: add kubernetes repository
+    copy:
+      src: ../repos/kubernetes.repo
+      dest: /etc/yum.repos.d/kubernetes.repo
+      remote_src: no
+
+# install kubernetes
+  - name: install kubernetes
+    package:
+      name: kubelet,kubeadm,kubectl
+      state: latest
+    become: yes
+
+# start and enable docker
+  - name: start docker service
+    service: 
+      name: docker
+      state: started
+      enabled: yes
+    become: yes
+
+# start and enable kubelet service
+  - name: start kubelet service
+    service: 
+      name: kubelet
+      state: started
+      enabled: yes
+    become: yes
+
+# todo: check cgroup drivers
+
+# reboot
+  - name: reboot hosts
+    reboot:
+
+- import_playbook: kubernetes-cluster-master.yml
+
+
+
+

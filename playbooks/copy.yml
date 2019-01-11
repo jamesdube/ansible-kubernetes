@@ -1,0 +1,14 @@
+---
+
+- hosts: kubernetes
+  tasks:
+    # install kubernetes
+    - name: add kubernetes repository
+      copy:
+        src: ../repos/kubernetes.repo
+        dest: /etc/yum.repos.d/kubernetes.repo
+        remote_src: no
+
+    - name: get host name
+      debug:
+        msg: "{{ inventory_hostname }}"

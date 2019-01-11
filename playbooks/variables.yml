@@ -1,0 +1,43 @@
+---
+
+- hosts: kubernetes-worker-nodes
+  vars: 
+    dockerDriverIsSystemd: false
+    kubeDriverIsSystemd: false
+  tasks:
+    - name: get docker cgroup
+      shell: docker info | grep -i cgroup
+      register: dockerResult
+
+    - name: get kubernetes cgroup
+      shell: cat /var/lib/kubelet/kubeadm-flags.env | grep -i cgroup
+      register: kubeResult
+
+    - set_fact:
+        dockerDriverIsSystemd: true
+      when: dockerResult.stdout | join('') | search('systemd')
+
+    - set_fact:
+        kubeDriverIsSystemd: true
+      when: kubeResult.stdout | join('') | search('systemd')
+
+    - debug:
+        msg: "docker and kube driver is systemd"
+      when: kubeDriverIsSystemd == dockerDriverIsSystemd
+
+    - debug:
+        msg: "docker and kube driver are not using systemd"
+      when: kubeDriverIsSystemd != dockerDriverIsSystemd
+      notify:
+        - fix docker cgroup driver
+
+    # - name: fix docker cgroup driver
+    #   command: pwd
+    #   when: dockerDriverIsSystemd == false
+
+    # - name: fix kube cgroup driver
+    #   command: pwd
+    #   when: kubeDriverIsSystemd == false
+
+  # - debug: 
+  #     var: kubeResult.stdout

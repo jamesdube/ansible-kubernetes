@@ -1,0 +1,6 @@
+---
+
+- hosts: worker-nodes
+  tasks:
+  - name: Reboot a host and wait for it to return
+    reboot:
