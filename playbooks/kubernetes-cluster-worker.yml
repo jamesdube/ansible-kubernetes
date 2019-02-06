@@ -1,6 +1,6 @@
 ---
 
-- hosts: kubernetes-master-node.contoso.local
+- hosts: kubernetes-master-nodes
   tasks:
     - name: grab the kubernetes cluster join token
       fetch:
@@ -8,7 +8,7 @@
         dest: /tmp/kubeadm-token.txt
         flat: true
 
-- hosts: kubernetes:!kubernetes-master-node.contoso.local
+- hosts: kubernetes:!kubernetes-master-nodes
   tasks:
     - name: copy the token to all the nodes
       copy:
