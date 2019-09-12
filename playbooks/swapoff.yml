@@ -1,0 +1,9 @@
+---
+- hosts: scape-master.lo  
+  tasks:
+  # disable swap
+  - name: disable Swap
+    mount:
+      name: swap
+      fstype: swap
+      state: absent

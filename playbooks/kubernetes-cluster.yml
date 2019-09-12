@@ -4,7 +4,7 @@
 - hosts: kubernetes
   tasks:
   - name: disable Selinux
-    selinux: 
+    selinux:
       state: disabled
 
 # enable br_netfilter Kernel Module
@@ -62,16 +62,13 @@
       fstype: swap
       state: absent
 
-# reboot
+# reboot NB: ansible v2.7 or later
   - name: reboot hosts
     reboot:
 
 # install docker
-  - name: install docker
-    package:
-      name: docker
-      state: latest
-    become: yes
+  - name: import_playbook
+    import_tasks: dockerv2.yml
 
 # install kubernetes
   - name: add kubernetes repository
@@ -89,7 +86,7 @@
 
 # start and enable docker
   - name: start docker service
-    service: 
+    service:
       name: docker
       state: started
       enabled: yes
@@ -97,7 +94,7 @@
 
 # start and enable kubelet service
   - name: start kubelet service
-    service: 
+    service:
       name: kubelet
       state: started
       enabled: yes
@@ -112,8 +109,3 @@
 - import_playbook: kubernetes-cluster-master.yml
 
 - import_playbook: kubernetes-cluster-worker.yml
-
-
-
-
-

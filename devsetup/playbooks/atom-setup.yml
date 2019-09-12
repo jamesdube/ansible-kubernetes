@@ -1,0 +1,9 @@
+---
+
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Install Atom
+      get_url:
+        url: https://atom.io/download/deb
+        dest: /tmp/atom.deb

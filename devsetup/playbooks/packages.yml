@@ -1,0 +1,19 @@
+--- 
+
+- hosts: localhost
+  gather_facts: false
+  
+  tasks:
+  - name: Install a list of packages
+    become: true
+    apt:
+      name: "{{ packages }}"
+    vars:
+      packages:
+      - sshpass
+      - httpie
+      - nmap
+      - maven
+      - git
+     
+

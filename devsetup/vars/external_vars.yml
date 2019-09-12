@@ -1,0 +1,5 @@
+---
+# in the above example, this would be vars/external_vars.yml
+email_work: james.dube@econet.co.zw
+
+email_personal: jamesdylandube@gmail.com
