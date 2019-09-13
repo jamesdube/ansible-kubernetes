@@ -1,14 +1,15 @@
 
 [kubernetes:children]
-kubernetes-master-nodes
-kubernetes-worker-nodes
+kubernetes_master_nodes
+kubernetes_worker_nodes
 
 
-[kubernetes-master-nodes]
-scape-master.lo ansible_host=10.0.10.10  ansible_user=root
+[kubernetes_master_nodes]
+scape_master_1.lo ansible_host=10.0.10.10  ansible_user=root
+scape_master_2.lo ansible_host=10.0.10.120  ansible_user=root
 
 
-[kubernetes-worker-nodes]
-scape-worker-1.lo ansible_host=10.0.10.11  ansible_user=root
-scape-worker-2.lo ansible_host=10.0.10.12  ansible_user=root
-scape-worker-3.lo ansible_host=10.0.10.13  ansible_user=root
+[kubernetes_worker_nodes]
+scape_worker_1.lo ansible_host=10.0.10.11  ansible_user=root
+scape_worker_2.lo ansible_host=10.0.10.12  ansible_user=root
+scape_worker_3.lo ansible_host=10.0.10.13  ansible_user=root
