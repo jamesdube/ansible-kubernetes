@@ -1,0 +1,21 @@
+apiVersion: kubeadm.k8s.io/v1beta1
+kind: ClusterConfiguration
+kubernetesVersion: stable
+apiServer:
+  certSANs:
+  {% for server in groups['kubernetes_master_nodes'] %}
+    - {{ hostvars[server]['ansible_host'] }}
+  {% endfor -%}
+  {%- if keepAliveIp is undefined -%}
+    - {{ keepAliveIp }}
+  {% endif %}
+#controlPlaneEndpoint: "192.168.0.1:6443"
+etcd:
+  external:
+    endpoints:
+    {% for server in groups['kubernetes_master_nodes'] %}
+    - https://{{ hostvars[server]['ansible_host'] }}:2379
+    {% endfor -%}
+    caFile: /etc/etcd/ssl/ca.pem
+    certFile: /etc/etcd/ssl/etcd.pem
+    keyFile: /etc/etcd/ssl/etcd-key.pem

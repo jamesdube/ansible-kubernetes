@@ -1,6 +1,7 @@
 ---
 - hosts: kubernetes_master_nodes
   tasks:
-    - debug:
-        msg: "{{ groups.kubernetes_master_nodes | length }}"
+    - copy:
+        src: ../templ
+        dest: /etc/etcd/ssl/
 

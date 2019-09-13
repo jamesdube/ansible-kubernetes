@@ -80,7 +80,7 @@
 # install kubernetes
   - name: install kubernetes
     package:
-      name: kubelet,kubeadm,kubectl
+      name: kubelet,kubeadm,kubectl,ntp
       state: latest
     become: yes
 
@@ -99,6 +99,16 @@
       state: started
       enabled: yes
     become: yes
+
+  - name: Start service ntpd, if not started
+    systemd: 
+      name: ntpd
+      state: started
+      enabled: yes
+
+  - name: sync with ntp server
+    shell: ntpdate -q 0.rhel.pool.ntp.org
+    become: true
 
 # todo: check cgroup drivers
 

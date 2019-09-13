@@ -1,5 +1,4 @@
 ---
-
 - name: generate csr
   shell: cfssl gencert -initca ca-csr.json -profile=peer | cfssljson -bare ca
   args:

@@ -1,0 +1,26 @@
+[epay:children]
+endpoints
+core
+recharge_providers
+bundle_providers
+
+[loadbalancers]
+lb-ecocash.local ansible_host=10.0.61.1  ansible_user=root
+lb-core.local ansible_host=10.0.61.2  ansible_user=root
+lb-providers.local ansible_host=10.0.61.3  ansible_user=root
+
+[endpoints]
+epay-ecocash-endpoint-1.local ansible_host=10.0.61.11  ansible_user=root
+epay-ecocash-endpoint-2.local ansible_host=10.0.61.12  ansible_user=root
+
+[core]
+epay-core-1.local ansible_host=10.0.61.21  ansible_user=root
+epay-core-2.local ansible_host=10.0.61.22  ansible_user=root
+
+[recharge_providers]
+epay-recharge-provider-1.local ansible_host=10.0.61.31  ansible_user=root
+epay-recharge-provider-2.local ansible_host=10.0.61.32  ansible_user=root
+
+[bundle_providers]
+epay-bundle-provider-1.local ansible_host=10.0.61.41  ansible_user=root
+epay-bundle-provider-2.local ansible_host=10.0.61.42  ansible_user=root

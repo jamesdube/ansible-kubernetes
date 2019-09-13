@@ -1,0 +1,12 @@
+---
+- hosts: kubernetes_master_nodes
+  vars:
+    podNetwork: "10.244.0.0/16"
+    keepAliveIp: 
+    masterHostCount: 1
+
+  tasks:
+    - name: copy file
+      template:
+        src: ../templates/kubeadm-config.yml.j2
+        dest: /tmp/kubeadm-config.yml

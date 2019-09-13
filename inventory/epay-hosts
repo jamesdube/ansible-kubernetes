@@ -5,11 +5,9 @@ kubernetes_worker_nodes
 
 
 [kubernetes_master_nodes]
-epay_master_1.ewz.local ansible_host=10.0.51.11  ansible_user=root
-epay_master_2.ewz.local ansible_host=10.0.51.12  ansible_user=root
+epay-master-1.ewz.local ansible_host=10.0.51.11  ansible_user=root
+epay-master-2.ewz.local ansible_host=10.0.51.12  ansible_user=root
 
 
 [kubernetes_worker_nodes]
-epay_worker_1.lo ansible_host=10.0.10.11  ansible_user=root
-epay_worker_2.lo ansible_host=10.0.10.12  ansible_user=root
-epay_worker_3.lo ansible_host=10.0.10.13  ansible_user=root
+epay-kubernetes-worker-1.ewz.local ansible_host=10.0.51.21  ansible_user=root
