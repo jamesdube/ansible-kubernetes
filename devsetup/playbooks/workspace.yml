@@ -1,0 +1,16 @@
+---
+
+- hosts: localhost
+  gather_facts: false
+
+  tasks:
+  - name: Generate Work SSH RSA host key
+    command : echo -e 'y\n' | ssh-keygen -q -t rsa -f ~/.ssh/id_rsa_work -C "{{ email_work }}" -N ""
+    args:
+      creates: ~/.ssh/id_rsa_work
+
+ 
+  - name: Generate Personal SSH RSA host key
+    command : ssh-keygen -q -t rsa -f ~/.ssh/id_rsa_personal -C "{{ email_personal }}" -N ""
+    args:
+      creates: ~/.ssh/id_rsa_personal

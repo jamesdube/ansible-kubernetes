@@ -1,0 +1,14 @@
+[Install]
+WantedBy=multi-user.target
+
+[Unit]
+Description=Epay Recharge Provider
+
+[Service]
+WorkingDirectory=/data/apps/services
+ExecStart=/usr/bin/java -jar epay-recharge-provider-1.0.0.RELEASE.jar
+Type=simple
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

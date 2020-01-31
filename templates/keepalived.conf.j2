@@ -1,0 +1,36 @@
+global_defs {
+   router_id LVS_k8s
+}
+vrrp_script CheckK8sMaster {
+    script "curl -k https://"{{ hostvars[inventory_hostname]['ansible_host'] }}":6443"
+    interval 3
+    timeout 9
+    fall 2
+    rise 2
+}
+vrrp_instance VI_1 {
+    state BACKUP
+    interface ens34
+    virtual_router_id 61
+    priority 80
+    advert_int 1
+    mcast_src_ip "{{ hostvars[inventory_hostname]['ansible_host'] }}"
+    nopreempt
+    authentication {
+          auth_type PASS
+        auth_pass KEEPALIVED_AUTH_PASS
+    }
+    unicast_peer {
+{% for server in groups['kubernetes_master_nodes'] %}
+    {% if server != hostvars[inventory_hostname]['inventory_hostname'] %}
+		{{ hostvars[server]['ansible_host'] }}
+	{% endif %}
+{% endfor %}
+    }
+    virtual_ipaddress {
+        10.0.51.60/24
+    }
+    track_script {
+        CheckK8sMaster
+    }
+}

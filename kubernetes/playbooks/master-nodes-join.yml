@@ -1,0 +1,68 @@
+--- 
+- hosts: kubernetes_master_nodes[0]
+  gather_facts: no
+  tasks:
+  - name: grab all certsd
+    fetch:
+      src: /etc/kubernetes/pki/{{item}}
+      dest: /tmp/pki/
+      flat: true
+      remote_src: yes
+    with_items:
+      ['apiserver.crt','apiserver.key','apiserver-kubelet-client.crt',
+      'apiserver-kubelet-client.key','ca.crt','ca.key','front-proxy-ca.crt','front-proxy-ca.key','front-proxy-client.key','front-proxy-client.crt','sa.key','sa.pub'
+      ]
+
+  - name: create token
+    shell: kubeadm token create --print-join-command > $HOME/kubeadm-token.txt
+
+  - name: grab the kubernetes cluster join token
+    fetch:
+      src: ./kubeadm-token.txt
+      dest: /tmp/kubeadm-token.txt
+      flat: true
+
+- hosts: kubernetes_master_nodes:!kubernetes_master_nodes[0]
+  gather_facts: no
+  tasks:
+  - name: Transfer certs to master nodes
+    copy:
+      src: /tmp/pki/
+      dest: /etc/kubernetes/pki/
+
+  - name: copy the token to all the nodes
+    copy:
+      src: /tmp/kubeadm-token.txt
+      dest: ./kubeadm-token.txt
+
+  - name: add control plane flag
+    command: sed -i 's/$/ --control-plane/' ./kubeadm-token.txt
+
+  - name: join the nodes to the cluster
+    command: bash ./kubeadm-token.txt
+
+- hosts: kubernetes_worker_nodes
+  gather_facts: no
+  tasks:
+
+    - name: copy the token to all the nodes
+      copy:
+        src: /tmp/kubeadm-token.txt
+        dest: ./kubeadm-token.txt
+
+    - name: join the nodes to the cluster
+      command: bash ./kubeadm-token.txt
+
+# - hosts: kubernetes_master_nodes
+#   gather_facts: no
+#   tasks:
+#     - name: create kube home directory
+#       shell: mkdir -p $HOME/.kube  
+
+#     - name: copy kube config
+#       shell: cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+#       become: true
+
+#     - name: fix kube config ownership
+#       shell: chown $(id -u):$(id -g) $HOME/.kube/config
+#       become: true 

@@ -67,15 +67,14 @@
     reboot:
 
 # install docker
-  - name: import_playbook
-    import_tasks: dockerv2.yml
+  - name: import docker tasks
+    import_tasks: ../tasks/docker.yml
 
 # install kubernetes
   - name: add kubernetes repository
-    copy:
-      src: ../repos/kubernetes.repo
+    template:
+      src: ../templates/kubernetes.repo.j2
       dest: /etc/yum.repos.d/kubernetes.repo
-      remote_src: no
 
 # install kubernetes
   - name: install kubernetes
@@ -100,22 +99,27 @@
       enabled: yes
     become: yes
 
-  - name: Start service ntpd, if not started
-    systemd: 
-      name: ntpd
-      state: started
-      enabled: yes
-
-  - name: sync with ntp server
-    shell: ntpdate -q 0.rhel.pool.ntp.org
-    become: true
-
 # todo: check cgroup drivers
 
 # reboot
   - name: reboot hosts
     reboot:
 
-- import_playbook: kubernetes-cluster-master.yml
+- hosts: kubernetes, loadbalancer
+  tasks:
 
-- import_playbook: kubernetes-cluster-worker.yml
+    - name: install ntp
+      package:
+        name: ntp
+        state: latest
+      become: yes
+
+    - name: Start service ntpd, if not started
+      systemd: 
+        name: ntpd
+        state: started
+        enabled: yes
+
+    - name: sync with ntp server
+      shell: ntpdate -q time.google.com
+      become: true

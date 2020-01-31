@@ -1,0 +1,14 @@
+events { }
+
+stream {
+	upstream stream_backend {
+		least_conn;
+		{% for server in groups['kubernetes_master_nodes'] %}
+   		server {{ hostvars[server]['ansible_host'] }}:6443;
+   		{% endfor %}
+	}
+	server {
+		listen        6443;
+		proxy_pass    stream_backend;
+	}
+}

@@ -1,0 +1,23 @@
+apiVersion: kubeadm.k8s.io/v1alpha1
+kind: MasterConfiguration
+api:
+  advertiseAddress: {{ hostvars[inventory_hostname]['ansible_host'] }}
+etcd:
+  endpoints:
+  {% for server in groups['kubernetes_master_nodes'] %}
+  - https://{{ hostvars[server]['ansible_host'] }}:2379
+  {% endfor -%}
+  caFile: /etc/etcd/ssl/ca.pem
+  certFile: /etc/etcd/ssl/etcd.pem
+  keyFile: /etc/etcd/ssl/etcd-key.pem
+networking:
+  podSubnet: {{ podNetwork }}
+apiServerCertSANs:
+{% for server in groups['kubernetes_master_nodes'] %}
+  - {{ hostvars[server]['ansible_host'] }}
+{% endfor -%}
+{%- if keepAliveIp is undefined -%}
+  - {{ keepAliveIp }}
+{% endif %}
+apiServerExtraArgs:
+  endpoint-reconciler-type: lease

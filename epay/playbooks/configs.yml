@@ -1,0 +1,42 @@
+- hosts: configservers
+  tasks:
+
+    - name: upload config server artifact
+      copy:
+        src: /home/jdube/data/ewz/java/epay/epay-config-server/target/epay-config-server-1.0.0.RELEASE.jar
+        dest: /data/apps/services/epay-config-server-1.0.0.RELEASE.jar
+      become: true
+
+    - name: create service file
+      template:
+        src: ../templates/epay-config-server.service.j2
+        dest: /etc/systemd/system/epay-config-server.service
+      become: true
+
+    - name: open firewall ports
+      firewalld:
+        port: 8888/tcp
+        permanent: yes
+        state: enabled
+      become: true
+
+    - name: reload firewall
+      command: firewall-cmd --reload
+      become: true
+
+    - name: enable and start config service
+      systemd:
+        name: epay-config-server
+        state: restarted
+        daemon_reload: yes
+        enabled: yes
+      become: true
+
+    - name: "wait for config server to come up"
+      uri:
+        url: "http://{{ hostvars['epay-config-server.local'].ansible_host }}:8888/epay-ecocash-endpoint/default"
+        status_code: 200
+      register: result
+      until: result.status == 200
+      retries: 10
+      delay: 10

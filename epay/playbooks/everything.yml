@@ -1,0 +1,239 @@
+---
+- hosts: loadbalancers
+  tasks: 
+    - name: download HA proxy
+      get_url:
+        url: http://mirror.centos.org/centos/7/os/x86_64/Packages/haproxy-1.5.18-8.el7.x86_64.rpm
+        dest: /tmp/haproxy-1.5.rpm
+      delegate_to: localhost
+
+    - name: upload HA proxy package
+      copy:
+        src: /tmp/haproxy-1.5.rpm
+        dest: /tmp/haproxy-1.5.rpm
+
+    - name: install HA proxy package
+      yum:
+         name: /tmp/haproxy-1.5.rpm
+         state: present
+
+- hosts: lb-ecocash.local
+  tasks:
+    - name: create config
+      template:
+        src: templates/lb.ecocash.cfg.j2
+        dest: /etc/haproxy/haproxy.cfg
+
+    - name: restart HA proxy
+      systemd:
+        name: haproxy
+        state: restarted
+        enabled: true
+
+    - name: open firewall ports
+      firewalld:
+        port: 8080/tcp
+        permanent: yes
+        state: enabled
+    - name: reload firewall
+      command: firewall-cmd --reload
+      become: true
+
+- hosts: lb-core.local
+  tasks:
+    - name: create config
+      template:
+        src: templates/lb.core.cfg.j2
+        dest: /etc/haproxy/haproxy.cfg
+
+    - name: restart HA proxy
+      systemd:
+        name: haproxy
+        state: restarted
+        enabled: true
+
+    - name: open firewall ports
+      firewalld:
+        port: 8003/tcp
+        permanent: yes
+        state: enabled
+
+    - name: reload firewall
+      command: firewall-cmd --reload
+      become: true
+
+- hosts: lb-providers.local
+  tasks:
+    - name: create config
+      template:
+        src: templates/lb.providers.cfg.j2
+        dest: /etc/haproxy/haproxy.cfg
+
+    - name: restart HA proxy
+      systemd:
+        name: haproxy
+        state: restarted
+        enabled: true
+
+    - name: open firewall ports
+      firewalld:
+        port: 9000-9010/tcp
+        permanent: yes
+        state: enabled
+
+    - name: reload firewall
+      command: firewall-cmd --reload
+      become: true
+
+- hosts: configservers, endpoints, core
+  vars:
+    dbHost: 10.0.0.1
+  tasks:
+
+    - name: disable Selinux
+      selinux:
+        state: disabled
+
+    - name: upload java package
+      copy:
+        src: /home/jdube/Downloads/jre-8u221-linux-x64.rpm
+        dest: /tmp/java-jdk-8.rpm
+
+    - name: install java package
+      yum:
+         name: /tmp/java-jdk-8.rpm
+         state: present
+
+    - name: add config server ip to all hosts
+      lineinfile:
+        dest: /etc/hosts
+        line: "{{ hostvars['epay-config-server.local'].ansible_host }} configserverhost"
+        state: present
+
+    - name: add core ip to all hosts
+      lineinfile:
+        dest: /etc/hosts
+        line: "{{ hostvars['lb-core.local'].ansible_host }} epaycorehost"
+        state: present
+
+    - name: add db ip to all hosts
+      lineinfile:
+        dest: /etc/hosts
+        line: "{{ dbHost }}  epaycoredbhost"
+        state: present
+
+- hosts: configservers
+  tasks:
+    - name: create services directory
+      file:
+        path: /data/apps/services
+        state: directory
+
+    - name: upload config server artifact
+      copy:
+        src: /home/jdube/data/ewz/java/epay/epay-config-server/target/epay-config-server-1.0.0.RELEASE.jar
+        dest: /data/apps/services/epay-config-server-1.0.0.RELEASE.jar
+
+    - name: create service file
+      template:
+        src: templates/epay-config-server.service.j2
+        dest: /etc/systemd/system/epay-config-server.service
+
+    - name: open firewall ports
+      firewalld:
+        port: 8888/tcp
+        permanent: yes
+        state: enabled
+
+    - name: reload firewall
+      command: firewall-cmd --reload
+      become: true
+
+    - name: reload systemd
+      become: true
+      command: systemctl daemon-reload
+
+    - name: enable and start config service
+      systemd:
+        name: epay-config-server
+        state: started
+        enabled: yes
+
+- hosts: endpoints
+  tasks:
+    - name: create services directory
+      file:
+        path: /data/apps/services
+        state: directory
+
+    - name: upload ecocash endpoint artifact
+      copy:
+        src: /home/jdube/data/ewz/java/epay/epay-ecocash-endpoint/target/epay-ecocash-endpoint-1.0.0.RELEASE.jar
+        dest: /data/apps/services/epay-ecocash-endpoint-1.0.0.RELEASE.jar
+
+    - name: create service file
+      template:
+        src: templates/epay-ecocash-endpoint.service.j2
+        dest: /etc/systemd/system/epay-ecocash-endpoint.service
+
+    - name: open firewall ports
+      firewalld:
+        port: 8080/tcp
+        permanent: yes
+        state: enabled
+
+    - name: reload firewall
+      command: firewall-cmd --reload
+      become: true
+
+    - name: reload systemd
+      become: true
+      command: systemctl daemon-reload
+
+    - name: enable and start endpoint service
+      systemd:
+        name: epay-ecocash-endpoint
+        state: started
+        enabled: yes
+
+
+- hosts: core
+  tasks:
+    - name: create services directory
+      file:
+        path: /data/apps/services
+        state: directory
+
+    - name: upload ecocash endpoint artifact
+      copy:
+        src: /home/jdube/data/ewz/java/epay/epay-reactor/epay-core/target/epay-core-1.0.0.RELEASE.jar
+        dest: /data/apps/services/epay-core-1.0.0.RELEASE.jar
+
+    - name: create service file
+      template:
+        src: templates/epay-core.service.j2
+        dest: /etc/systemd/system/epay-core.service
+
+    - name: open firewall ports
+      firewalld:
+        port: 8003/tcp
+        permanent: yes
+        state: enabled
+
+    - name: reload firewall
+      command: firewall-cmd --reload
+      become: true
+
+    - name: reload systemd
+      become: true
+      command: systemctl daemon-reload
+
+    - name: enable and start core service
+      systemd:
+        name: epay-core
+        state: started
+        enabled: yes
+
+
+
+

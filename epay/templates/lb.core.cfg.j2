@@ -1,0 +1,40 @@
+global
+   log /dev/log local0
+   log /dev/log local1 notice
+   chroot /var/lib/haproxy
+   stats timeout 30s
+   user haproxy
+   group haproxy
+   daemon
+   nbproc 2
+   cpu-map 1 0
+   cpu-map 2 1
+   maxconn 1000000
+
+defaults
+   log global
+   mode http
+   option httplog
+   option dontlognull
+   retries 3
+   option redispatch
+   maxconn 20000
+   timeout connect 10000
+   timeout client 300000
+   timeout server 300000
+
+frontend stats
+   bind *:8080
+   stats uri /haproxy?stats
+   stats enable
+   stats refresh 10s
+
+frontend epay_core_front
+   bind *:8003
+   default_backend epay_core_backend
+
+backend epay_core_backend
+   balance roundrobin
+   {% for server in groups['core'] %}
+   server {{ hostvars[server]['inventory_hostname'] }} {{ hostvars[server]['ansible_host'] }}:8003 check
+   {% endfor %}

@@ -1,0 +1,5 @@
+    podNetwork: "10.244.0.0/16"
+    keepAliveIp: 
+    masterNodesCount: 1
+    controlPlaneIp:
+    joinCommand:

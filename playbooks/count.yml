@@ -1,0 +1,7 @@
+---
+- hosts: kubernetes_master_nodes
+  tasks:
+    - copy:
+        src: ../templ
+        dest: /etc/etcd/ssl/
+

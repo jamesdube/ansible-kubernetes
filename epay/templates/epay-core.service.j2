@@ -1,0 +1,15 @@
+
+[Install]
+WantedBy=multi-user.target
+
+[Unit]
+Description=Epay Core Service
+
+[Service]
+WorkingDirectory=/data/apps/services
+ExecStart=/usr/bin/java -jar epay-core-1.0.0.RELEASE.jar 
+Type=simple
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

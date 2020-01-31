@@ -1,0 +1,22 @@
+---
+- hosts: endpoints
+  tasks:
+    - name: upload ecocash endpoint artifact
+      copy:
+        src: /home/jdube/data/ewz/java/epay/epay-ecocash-endpoint/target/epay-ecocash-endpoint-1.0.0.RELEASE.jar
+        dest: /data/apps/services/epay-ecocash-endpoint-1.0.0.RELEASE.jar
+      become: true
+
+    - name: create service file
+      template:
+        src: templates/epay-ecocash-endpoint.service.j2
+        dest: /etc/systemd/system/epay-ecocash-endpoint.service
+
+    - name: enable and start endpoint service
+      systemd:
+        name: epay-core
+        state: restarted
+        daemon_reload: yes
+        enabled: yes
+      become: true
+        

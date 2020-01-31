@@ -1,0 +1,7 @@
+---
+- hosts: kubernetes, loadbalancer.local
+  vars_files:
+    - ../vars/local.yml
+  tasks:
+- import_playbook: kubernetes-base.yml
+- import_playbook: kubernetes-master.yml

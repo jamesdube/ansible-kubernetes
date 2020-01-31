@@ -1,0 +1,93 @@
+- hosts: kubernetes_master_nodes[0]
+  tasks:
+
+  - name: create kubeadm config
+    template:
+      src: ../templates/kube-config.yml.j2
+      dest: /tmp/kubeadm-config.yml
+
+  - name: initialise kubernetes cluster
+    shell:  kubeadm init --config /tmp/kubeadm-config.yml      
+    register: kubeadmInitLog
+
+  - name: create kube home directory
+    shell: mkdir -p $HOME/.kube  
+
+  - name: copy kube config
+    shell: cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    become: true
+
+  - name: fix kube config ownership
+    shell: chown $(id -u):$(id -g) $HOME/.kube/config
+    become: true  
+
+  - name: install kubernetes dns
+    shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+
+
+
+
+
+
+
+
+
+
+
+
+#   - name: grab all certs
+#    fetch:
+#     src: /etc/kubernetes/pki/{{item}}
+#     dest: /tmp/pki/
+#     flat: true
+#     remote_src: yes
+#   with_items:
+#     ['apiserver.crt','apiserver.key','apiserver-kubelet-client.crt',
+#     'apiserver-kubelet-client.key','ca.crt','ca.key','front-proxy-ca.crt','front-proxy-ca.key','front-proxy-client.key','front-proxy-client.crt','sa.key','sa.pub'
+#     ]
+
+
+# - hosts: kubernetes_master_nodes:!kubernetes_master_nodes[0]
+#   tasks:
+
+#     - name: Transfer file from certificates
+#       copy:
+#         src: /tmp/pki/
+#         dest: /etc/kubernetes/pki/
+
+#     - name: generate token
+#   - name: grab all certs
+#     fetch:
+#       src: /etc/kubernetes/pki/{{item}}
+#       dest: /tmp/pki/
+#       flat: true
+#       remote_src: yes
+#     with_items:
+#       ['apiserver.crt','apiserver.key','apiserver-kubelet-client.crt',
+#       'apiserver-kubelet-client.key','ca.crt','ca.key','front-proxy-ca.crt','front-proxy-ca.key','front-proxy-client.key','front-proxy-client.crt','sa.key','sa.pub'
+#       ] 
+#     - name: grab all certs
+#       shell:  kubeadm token create --print-join-command
+#       register: joinCommand
+#       delegate_to: kubernetes_master_nodes[0]
+
+#     - name: join the master node
+#       shell: bash "{{ joinCommand.stdout }}" --control-plane
+
+#     - name: create kube home directory
+#       shell: mkdir -p $HOME/.kube  
+
+#     - name: copy kube config
+#       shell: cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+#       become: true
+
+#     - name: fix kube config ownership
+#       shell: chown $(id -u):$(id -g) $HOME/.kube/config
+#       become: true 
+
+#     - name: copy kube config
+#       shell: cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+#       become: true 
+
+

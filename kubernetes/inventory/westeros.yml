@@ -1,0 +1,43 @@
+---
+all:
+  hosts:
+    loadbalancer.local:
+      ansible_host: 10.0.80.10
+      ansible_user: root
+      ansible_ssh_pass: 'sead2301'
+      ansible_become_pass: 'sead2301'
+    dothraki-master-1.local:
+      ansible_host: 10.0.80.11
+      ansible_user: root
+      ansible_ssh_pass: 'sead2301'
+      ansible_become_pass: 'sead2301'
+    dothraki-master-2.local:
+      ansible_host: 10.0.80.12
+      ansible_user: root
+      ansible_ssh_pass: 'sead2301'
+      ansible_become_pass: 'sead2301'
+    dothraki-worker-1.local:
+      ansible_host: 10.0.80.21
+      ansible_user: root
+      ansible_ssh_pass: 'sead2301'
+      ansible_become_pass: 'sead2301'
+    dothraki-worker-2.local:
+      ansible_host: 10.0.80.22
+      ansible_user: root
+      ansible_ssh_pass: 'sead2301'
+      ansible_become_pass: 'sead2301'
+  children:
+    kubernetes:
+      hosts:
+        dothraki-master-1.local:
+        dothraki-master-2.local:
+        dothraki-worker-1.local:
+        dothraki-worker-2.local:
+    kubernetes_master_nodes:
+      hosts:
+        dothraki-master-1.local:
+        dothraki-master-2.local:
+    kubernetes_worker_nodes:
+      hosts:
+        dothraki-worker-1.local:
+        dothraki-worker-2.local:

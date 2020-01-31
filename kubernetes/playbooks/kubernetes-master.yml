@@ -1,0 +1,39 @@
+---
+- hosts: kubernetes_master_nodes
+  tasks:
+    - name: check number of master nodes
+      set_fact:
+        masterNodesCount: "{{ groups.kubernetes_master_nodes | length }}"
+
+    - name: set loadbalancer as control plane IP
+      set_fact:
+        controlPlaneIp: "{{ hostvars['loadbalancer.local']['ansible_host'] }}"
+      when: groups.kubernetes_master_nodes | length  | int > 1
+
+    - name: set node as control plane IP
+      set_fact:
+        controlPlaneIp: "{{ groups.kubernetes_master_nodes[0]['ansible_host'] }}"
+      when: groups.kubernetes_master_nodes | length | int == 1
+
+- import_playbook: foo.yml
+  when: groups.kubernetes_master_nodes | length | int > 1
+
+- import_playbook: etcd-cluster.yml
+  when: groups.kubernetes_master_nodes | length | int > 1
+
+- import_playbook: cluster-bootstrap.yml
+
+- import_playbook: master-nodes-join.yml
+
+#   - name: grab all certs
+#     fetch:
+#       src: /etc/kubernetes/pki/
+#       dest: /tmp/kube-pki/
+#       flat: true
+
+# - hosts: kubernetes_master_nodes:!kubernetes_master_nodes[0]
+#   tasks:
+#   - name: create kubeadm config
+#     copy:
+#       src: /tmp/kube-pki/      
+#       dest: /etc/kubernetes/pki/

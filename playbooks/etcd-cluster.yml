@@ -1,0 +1,20 @@
+---
+- name: generate csr
+  shell: cfssl gencert -initca ca-csr.json -profile=peer | cfssljson -bare ca
+  args:
+    chdir: /etc/etcd/ssl
+
+- name: generate certs
+  shell: cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kubernetes etcd-csr.json | cfssljson -bare etcd
+  args:
+    chdir: /etc/etcd/ssl
+
+- name: grab all certs
+  fetch:
+    src: /etc/etcd/ssl/{{item}}
+    dest: /tmp/kube-master-certs/
+    flat: true
+  with_items:
+    ['ca-key.pem','ca.pem','ca-config.json']
+
+

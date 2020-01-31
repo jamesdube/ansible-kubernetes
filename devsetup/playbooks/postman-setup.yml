@@ -1,0 +1,9 @@
+---
+
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Install Postman
+      get_url:
+        url: https://dl.pstmn.io/download/latest/linux64
+        dest: /tmp/postman.tar.gz

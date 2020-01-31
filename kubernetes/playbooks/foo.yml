@@ -1,0 +1,100 @@
+---
+- hosts: loadbalancer.local
+  tasks: 
+
+    - name: disable Selinux
+      selinux:
+        state: disabled
+
+    - name: create nginx repo
+      template:
+        src: ../templates/nginx.repo.j2
+        dest: /etc/yum.repos.d/nginx.repo
+      become: true
+
+    - name: Install dependencies
+      yum:
+        name:
+          - ntp
+          - nginx
+        state: present
+
+    - name: Start service ntpd, if not started
+      systemd: 
+        name: ntpd
+        state: started
+        enabled: yes
+
+    - name: sync with ntp server
+      shell: ntpdate -q time.google.com
+      become: true 
+
+    - name: create nginx directory
+      file:
+        path: /etc/nginx/
+        state: directory
+
+    - name: create nginx conf
+      template:
+        src: ../templates/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+      become: true
+
+    - name: restart nginx
+      systemd:
+        name: nginx
+        state: restarted
+        enabled: true
+      become: true
+
+    # - name: download HA proxy
+    #   get_url:
+    #     url: https://rpmfind.net/linux/centos/7.7.1908/os/x86_64/Packages/haproxy-1.5.18-9.el7.x86_64.rpm
+    #     dest: /tmp/haproxy-1.5.rpm
+    #   delegate_to: localhost
+
+    # - name: upload HA proxy package
+    #   copy:
+    #     src: /tmp/haproxy-1.5.rpm
+    #     dest: /tmp/haproxy-1.5.rpm
+
+    # - name: install HA proxy package
+    #   yum:
+    #      name: /tmp/haproxy-1.5.rpm
+    #      state: present
+    #   become: true
+
+    # - name: create config
+    #   template:
+    #     src: ../templates/haproxy.cfg.j2
+    #     dest: /etc/haproxy/haproxy.cfg
+    #   become: true
+
+    # - name: restart HA proxy
+    #   systemd:
+    #     name: haproxy
+    #     state: restarted
+    #     enabled: true
+    #   become: true
+
+    - name: open stats firewall ports
+      firewalld:
+        port: 8080/tcp
+        permanent: yes
+        state: enabled
+      become: true
+
+    - name: open kube firewall ports
+      firewalld:
+        port: 6443/tcp
+        permanent: yes
+        state: enabled
+      become: true
+        
+    - name: reload firewall
+      command: firewall-cmd --reload
+      become: true
+
+    # - name: allow haproxy to connect to any port
+    #   command: setsebool -P haproxy_connect_any 1
+    #   become: true

@@ -1,0 +1,38 @@
+
+- hosts: core
+  tasks:
+
+    - name: upload core artifact
+      copy:
+        src: /home/jdube/data/ewz/java/epay/epay-reactor/epay-core/target/epay-core-1.0.0.RELEASE.jar
+        dest: /data/apps/services/epay-core-1.0.0.RELEASE.jar
+      become: true
+
+    - name: create service file
+      template:
+        src: ../templates/epay-core.service.j2
+        dest: /etc/systemd/system/epay-core.service
+      become: true
+
+    - name: open firewall ports
+      firewalld:
+        port: 8003/tcp
+        permanent: yes
+        state: enabled
+      become: true
+
+    - name: reload firewall
+      command: firewall-cmd --reload
+      become: true
+
+    - name: enable and start core service
+      systemd:
+        name: epay-core
+        state: restarted
+        daemon_reload: yes
+        enabled: yes
+      become: true
+
+
+
+

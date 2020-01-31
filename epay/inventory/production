@@ -1,0 +1,48 @@
+[epay:children]
+endpoints
+core
+recharge_providers
+bundle_providers
+bill_payment_providers
+
+[providers:children]
+bill_payment_providers
+recharge_providers
+bundle_providers
+
+[configservers]
+epay-v2-svr2 ansible_host=192.168.51.210  ansible_user=developer
+
+[loadbalancers]
+# lb-ecocash.local ansible_host=192.168.61.1  ansible_user=developer
+#core
+epay-v2-svr3 ansible_host=192.168.51.211  ansible_user=developer
+#providers
+epay-v2-svr4 ansible_host=192.168.51.212  ansible_user=developer
+epay-v2-svr10 ansible_host=192.168.51.218 ansible_user=developer
+epay-v2-svr11 ansible_host=192.168.51.219 ansible_user=developer
+
+[endpoints]
+epay-v2-svr5 ansible_host=192.168.51.213  ansible_user=developer
+epay-v2-svr6 ansible_host=192.168.51.214  ansible_user=developer
+
+[core]
+epay-v2-svr7 ansible_host=192.168.51.215 ansible_user=developer
+epay-v2-svr8 ansible_host=192.168.51.216 ansible_user=developer
+epay-v2-svr9 ansible_host=192.168.51.217 ansible_user=developer
+
+[databases]
+database ansible_host=192.168.51.192 ansible_user=developer
+
+[recharge_providers]
+epay-v2-svr15 ansible_host=192.168.51.223 ansible_user=developer
+epay-v2-svr16 ansible_host=192.168.51.224 ansible_user=developer
+
+[bundle_providers]
+epay-v2-svr12 ansible_host=192.168.51.220 ansible_user=developer
+epay-v2-svr13 ansible_host=192.168.51.221 ansible_user=developer
+epay-v2-svr14 ansible_host=192.168.51.222 ansible_user=developer
+
+[bill_payment_providers]
+epay-v2-svr15 ansible_host=192.168.51.223 ansible_user=developer
+epay-v2-svr16 ansible_host=192.168.51.224 ansible_user=developer

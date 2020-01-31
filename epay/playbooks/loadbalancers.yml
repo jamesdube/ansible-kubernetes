@@ -1,0 +1,112 @@
+---
+- hosts: loadbalancers
+  tasks: 
+    - name: download HA proxy
+      get_url:
+        url: http://mirror.centos.org/centos/7/os/x86_64/Packages/haproxy-1.5.18-8.el7.x86_64.rpm
+        dest: /tmp/haproxy-1.5.rpm
+      delegate_to: localhost
+
+    - name: upload HA proxy package
+      copy:
+        src: /tmp/haproxy-1.5.rpm
+        dest: /tmp/haproxy-1.5.rpm
+
+    - name: install HA proxy package
+      yum:
+         name: /tmp/haproxy-1.5.rpm
+         state: present
+      become: true
+
+    - name: open stats firewall ports
+      firewalld:
+        port: 8080/tcp
+        permanent: yes
+        state: enabled
+      become: true
+        
+    - name: reload firewall
+      command: firewall-cmd --reload
+      become: true
+
+    - name: allow haproxy to connect to any port
+      command: setsebool -P haproxy_connect_any 1
+      become: true
+
+- hosts: lb-ecocash.local
+  tasks:
+    - name: create config
+      template:
+        src: ../templates/lb.ecocash.cfg.j2
+        dest: /etc/haproxy/haproxy.cfg
+      become: true
+
+    - name: restart HA proxy
+      systemd:
+        name: haproxy
+        state: restarted
+        enabled: true
+      become: true
+
+    - name: open firewall ports
+      firewalld:
+        port: 8080/tcp
+        permanent: yes
+        state: enabled
+      become: true
+
+    - name: reload firewall
+      command: firewall-cmd --reload
+      become: true
+
+- hosts: epay-v2-svr3
+  tasks:
+    - name: create config
+      template:
+        src: ../templates/lb.core.cfg.j2
+        dest: /etc/haproxy/haproxy.cfg
+      become: true
+
+    - name: restart HA proxy
+      systemd:
+        name: haproxy
+        state: restarted
+        enabled: true
+      become: true
+
+    - name: open firewall ports
+      firewalld:
+        port: 8003/tcp
+        permanent: yes
+        state: enabled
+      become: true
+
+    - name: reload firewall
+      command: firewall-cmd --reload
+      become: true
+
+- hosts: epay-v2-svr4
+  tasks:
+    - name: create config
+      template:
+        src: ../templates/lb.providers.cfg.j2
+        dest: /etc/haproxy/haproxy.cfg
+      become: true
+
+    - name: restart HA proxy
+      systemd:
+        name: haproxy
+        state: restarted
+        enabled: true
+      become: true
+
+    - name: open firewall ports
+      firewalld:
+        port: 9000-9010/tcp
+        permanent: yes
+        state: enabled
+      become: true
+
+    - name: reload firewall
+      command: firewall-cmd --reload
+      become: true

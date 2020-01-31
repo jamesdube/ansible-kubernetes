@@ -1,0 +1,46 @@
+---
+- hosts: database
+  tasks:
+    - name: upload mysql package
+      copy:
+        src: /home/jdube/Downloads/mysql-community-server-5.7.27-1.el7.x86_64.rpm
+        dest: /tmp/mysql-community-server-5.7.rpm 
+
+    - name: upload mysql common package
+      copy:
+        src: /home/jdube/Downloads/mysql-community-common-5.7.27-1.el7.x86_64.rpm
+        dest: /tmp/mysql-community-common-5.7.rpm
+
+    - name: upload mysql client package
+      copy:
+        src: /home/jdube/Downloads/mysql-community-client-5.7.27-1.el7.x86_64.rpm
+        dest: /tmp/mysql-community-client-5.7.rpm
+
+    - name: install mysql common
+      yum:
+         name: /tmp/mysql-community-common-5.7.rpm
+         state: present
+      become: true
+
+    - name: install mysql client
+      yum:
+         name: /tmp/mysql-community-client-5.7.rpm
+         state: present
+      become: true
+
+    - name: install mysql
+      yum:
+         name: /tmp/mysql-community-server-5.7.rpm
+         state: present
+      become: true
+
+    - name: download mysql tuner
+      get_url:
+        url: http://mysqltuner.com/mysqltuner.pl
+        dest: /tmp/mysqltuner.pl
+      delegate_to: localhost
+
+    - name: upload mysql tuner
+      copy:
+        src: /tmp/mysqltuner.pl
+        dest: /tmp/mysqltuner.pl

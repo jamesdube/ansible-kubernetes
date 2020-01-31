@@ -1,0 +1,11 @@
+- hosts: zipkin
+  tasks:
+
+    - name: download zipkin
+      command: curl -sSL https://zipkin.io/quickstart.sh | bash -s
+      delegate_to: localhost
+
+    - name: upload java package
+      copy:
+        src: /home/jdube/zipkin.jar
+        dest: /data/zipkin.jar

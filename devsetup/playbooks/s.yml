@@ -1,0 +1,13 @@
+---
+
+- hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../vars/external_vars.yml
+
+  tasks:
+  - name: Generate Work SSH RSA host key
+    command : echo -e 'y\n' | ssh-keygen -q -t rsa -f ~/.ssh/id_rsa_work -C "james.dube@econet.co.zw" -N ""
+    args:
+      creates: ~/.ssh/id_rsa_work
+

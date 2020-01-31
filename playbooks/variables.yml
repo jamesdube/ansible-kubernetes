@@ -1,6 +1,6 @@
 ---
 
-- hosts: kubernetes-worker-nodes
+- hosts: kubernetes
   vars: 
     dockerDriverIsSystemd: false
     kubeDriverIsSystemd: false

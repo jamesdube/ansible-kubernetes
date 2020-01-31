@@ -1,0 +1,7 @@
+---
+
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Install Gnone themes
+      apt_repository: repo='ppa:noobslab/themes' state=present update_cache=yes

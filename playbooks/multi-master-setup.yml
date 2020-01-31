@@ -1,0 +1,100 @@
+---
+- name: install dependencies
+  package:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - ["tar","keepalived"]
+
+- name: download cloudflare pki tool
+  get_url:
+    url: https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+    dest: /usr/local/bin/cfssl
+  become: true
+
+- name: download cloudflare json tool
+  get_url:
+    url: https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+    dest: /usr/local/bin/cfssljson
+  become: true
+
+- name: make cloudflare pki tool executable
+  file: dest=/usr/local/bin/cfssl mode=a+x
+
+- name: make cloudflare json tool executable
+  file: dest=/usr/local/bin/cfssljson mode=a+x
+
+- name: create certs directory
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - ["/opt/ssl","/etc/etcd/ssl","/var/lib/etcd"]
+
+- name: copy templates
+  template:
+    src: "{{ item }}"
+    dest: /etc/etcd/ssl/{{ item | basename | regex_replace('\.j2','') }}
+  with_fileglob: 
+    - ../templates/*.j2
+
+- name: import_playbook
+  import_tasks: etcd-cluster.yml
+
+- name: copy ca certs to all master nodes
+  copy:
+    src: /tmp/kube-master-certs/
+    dest: /etc/etcd/ssl/
+
+- name: generate master cert for each node
+  shell: cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kubernetes etcd-csr.json | cfssljson -bare etcd
+  args:
+    chdir: /etc/etcd/ssl
+
+- name: download etcd
+  get_url:
+    url: https://github.com/coreos/etcd/releases/download/v3.3.4/etcd-v3.3.4-linux-amd64.tar.gz
+    dest: ./etcd-v3.3.4-linux-amd64.tar.gz
+
+- name: Extract etcd archive
+  command: tar -zxvf etcd-v3.3.4-linux-amd64.tar.gz
+
+- name: copy extracted files
+  copy:
+    src: ./etcd-v3.3.4-linux-amd64/etcd
+    dest: /usr/local/bin/
+    remote_src: yes
+  become: true
+
+- name: make etcd executable
+  file: dest=/usr/local/bin/etcd mode=a+x
+
+- name: create etcd service file
+  template:
+    src: ../templates/etcd.service.j2
+    dest: /etc/systemd/system/etcd.service
+
+- name: reload systemd
+  become: true
+  command: systemctl daemon-reload
+
+- name: enable and start etcd service
+  systemd:
+    name: etcd
+    state: started
+    enabled: yes
+
+- name: create keepalived config
+  template:
+    src: ../templates/keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+
+- name: reload systemd
+  become: true
+  command: systemctl daemon-reload
+
+- name: restart keepalived service
+  systemd:
+    name: keepalived
+    state: restarted
+    enabled: yes
