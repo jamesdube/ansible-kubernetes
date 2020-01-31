@@ -83,13 +83,19 @@
 
     - name: copy extracted files
       copy:
-        src: ./etcd-v3.3.4-linux-amd64/etcd*
+        src: ./etcd-v3.3.4-linux-amd64/{{ item }}
         dest: /usr/local/bin/
         remote_src: yes
       become: true
+      with_items:
+        - etcd
+        - etcdctl
 
     - name: make etcd executable
-      file: dest=/usr/local/bin/etcd mode=a+x
+      file: dest=/usr/local/bin/{{item}} mode=a+x
+      with_items:
+        - etcd
+        - etcdctl
 
     - name: create etcd service file
       template:
