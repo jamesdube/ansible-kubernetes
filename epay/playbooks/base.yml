@@ -1,0 +1,48 @@
+---
+- hosts: configservers, endpoints, core, providers
+  vars_files:
+    - ../vars/production.yml
+  tasks:
+
+    - name: disable Selinux
+      selinux:
+        state: disabled
+      become: true
+
+    - name: create services directory
+      file:
+        path: "{{item}}"
+        state: directory
+      with_items:
+        - "/data/apps/services"
+        - "/data/apps/logs/epay/core"
+        - "/data/apps/logs/epay/endpoint"
+        - "/data/apps/logs/epay/provider"
+      become: true
+
+    - name: upload java package
+      copy:
+        src: /home/jdube/Downloads/jre-8u221-linux-x64.rpm
+        dest: /tmp/java-jdk-8.rpm
+
+    - name: install java package
+      yum:
+        name: /tmp/java-jdk-8.rpm
+        state: present
+      become: true
+
+    - name: add services ip addresses to all hosts
+      lineinfile:
+        dest: /etc/hosts
+        line: "{{item}}"
+        state: present
+      with_items:
+        - "{{ hostvars['epay-v2-svr2'].ansible_host }} configserverhost"
+        - "{{ dbHost }} epaycoredbhost"
+        - "{{ gitlabHost }} gitlab-svr-1"
+        - "{{ cvbsHost }} cvbshost"
+        - "{{ hostvars['epay-v2-svr4'].ansible_host }} rechargeproviderhost"
+        - "{{ hostvars['epay-v2-svr4'].ansible_host }} bundleproviderhost"
+        - "{{ hostvars['epay-v2-svr4'].ansible_host }} billpaymentproviderhost"
+        - "{{ hostvars['epay-v2-svr3'].ansible_host }} epaycorehost"
+      become: true

@@ -20,7 +20,7 @@ ExecStart=/usr/local/bin/etcd \
 --listen-client-urls=https://{{ansible_host}}:2379,http://127.0.0.1:2379 \
 --advertise-client-urls=https://{{ansible_host}}:2379 \
 --initial-cluster-token=etcd-cluster-0 \
---initial-cluster=epay-master-1.ewz.local=https://10.0.51.11:2380,epay-master-2.ewz.local=https://10.0.51.12:2380\
+--initial-cluster={% for server in groups['kubernetes_master_nodes'] %}{{hostvars[server]['inventory_hostname']}}=https://{{hostvars[server]['ansible_host']}}:2380,{% endfor %} \
 --initial-cluster-state=new \
 --data-dir=/var/lib/etcd
 Restart=on-failure

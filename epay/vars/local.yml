@@ -1,0 +1,7 @@
+---
+dbHost: 10.0.0.1
+gitlabHost: 10.0.0.1
+cvbsHost: 172.27.101.133
+zipkinHost: 10.0.0.1
+minHeapSize: 128
+maxHeapSize: 2048

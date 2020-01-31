@@ -1,0 +1,107 @@
+--- 
+- hosts: kubernetes_master_nodes
+  tasks:
+    - name: download cloudflare pki tool
+      get_url:
+        url: https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+        dest: /usr/local/bin/cfssl
+      become: true
+
+    - name: download cloudflare json tool
+      get_url:
+        url: https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+        dest: /usr/local/bin/cfssljson
+      become: true
+
+    - name: make cloudflare pki tool executable
+      file: dest=/usr/local/bin/cfssl mode=a+x
+
+    - name: make cloudflare json tool executable
+      file: dest=/usr/local/bin/cfssljson mode=a+x
+
+    - name: create certs directory
+      file:
+        path: "{{ item }}"
+        state: directory
+      with_items:
+        - ["/opt/ssl","/etc/etcd/ssl","/var/lib/etcd"]
+
+    - name: copy templates
+      template:
+        src: "{{ item }}"
+        dest: /opt/ssl/{{ item | basename | regex_replace('\.j2','') }}
+      with_fileglob: 
+        - ../templates/ssl/*.j2
+
+- hosts: kubernetes_master_nodes[0]
+  tasks: 
+    - name: generate csr
+      shell: cfssl gencert -initca ca-csr.json -profile=peer | cfssljson -bare ca
+      args:
+        chdir: /opt/ssl
+
+    - name: generate certs
+      shell: cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kubernetes etcd-csr.json | cfssljson -bare etcd
+      args:
+        chdir: /opt/ssl
+
+    - name: grab all certs
+      fetch:
+        src: /opt/ssl/{{item}}
+        dest: /tmp/kube-master-certs/
+        flat: true
+      with_items:
+        ['ca-key.pem','ca.pem','ca-config.json']
+
+- hosts: kubernetes_master_nodes
+  tasks:
+    - name: copy ca certs to all master nodes
+      copy:
+        src: /tmp/kube-master-certs/
+        dest: /opt/ssl
+
+    - name: generate master cert for each node
+      shell: cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kubernetes etcd-csr.json | cfssljson -bare etcd
+      args:
+        chdir: /opt/ssl
+
+    - name: copy certs to etcd dest
+      copy:
+        src: /opt/ssl/{{item}}
+        dest: /etc/etcd/ssl/
+        remote_src: yes
+      with_items:
+        ['ca-key.pem','ca.pem','etcd-key.pem','etcd.pem']
+
+    - name: download etcd
+      get_url:
+        url: https://github.com/coreos/etcd/releases/download/v3.3.4/etcd-v3.3.4-linux-amd64.tar.gz
+        dest: ./etcd-v3.3.4-linux-amd64.tar.gz
+
+    - name: Extract etcd archive
+      command: tar -zxvf etcd-v3.3.4-linux-amd64.tar.gz
+
+    - name: copy extracted files
+      copy:
+        src: ./etcd-v3.3.4-linux-amd64/etcd
+        dest: /usr/local/bin/
+        remote_src: yes
+      become: true
+
+    - name: make etcd executable
+      file: dest=/usr/local/bin/etcd mode=a+x
+
+    - name: create etcd service file
+      template:
+        src: ../templates/etcd.service.j2
+        dest: /etc/systemd/system/etcd.service
+
+    - name: reload systemd
+      become: true
+      command: systemctl daemon-reload
+
+    - name: enable and start etcd service
+      systemd:
+        name: etcd
+        state: started
+        enabled: yes

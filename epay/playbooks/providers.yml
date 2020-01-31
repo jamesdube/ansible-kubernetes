@@ -1,0 +1,68 @@
+---
+- hosts: bundle_providers
+  tasks:
+
+    - name: upload bundle provider artifact
+      copy:
+        src: /home/jdube/data/ewz/java/epay/bundle-service-provider/target/bundle-service-provider-1.0.0.RELEASE.jar
+        dest: /data/apps/services/bundle-service-provider-1.0.0.RELEASE.jar
+      become: true
+
+    - name: create service file
+      template:
+        src: ../templates/epay-bundle-provider.service.j2
+        dest: /etc/systemd/system/epay-bundle-provider.service
+      become: true
+
+    - name: open firewall ports
+      firewalld:
+        port: 9003/tcp
+        permanent: yes
+        state: enabled
+      become: true
+
+    - name: reload firewall
+      command: firewall-cmd --reload
+      become: true
+
+    - name: enable and start bundle provider service
+      systemd:
+        name: epay-bundle-provider
+        state: restarted
+        daemon_reload: yes
+        enabled: yes
+      become: true
+
+- hosts: recharge_providers
+  tasks:
+
+    - name: upload recharge provider artifact
+      copy:
+        src: /home/jdube/data/ewz/java/epay/epay-recharge-service-provider/target/recharge-provider-1.0.0.RELEASE.jar 
+        dest: /data/apps/services/epay-recharge-provider-1.0.0.RELEASE.jar 
+      become: true
+
+    - name: create service file
+      template:
+        src: ../templates/epay-recharge-provider.service.j2
+        dest: /etc/systemd/system/epay-recharge-provider.service
+      become: true
+
+    - name: open firewall ports
+      firewalld:
+        port: 9001/tcp
+        permanent: yes
+        state: enabled
+      become: true
+
+    - name: reload firewall
+      command: firewall-cmd --reload
+      become: true
+
+    - name: enable and start recharge provider service
+      systemd:
+        name: epay-recharge-provider
+        state: restarted
+        daemon_reload: yes
+        enabled: yes
+      become: true

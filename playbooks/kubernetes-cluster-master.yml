@@ -1,6 +1,6 @@
 ---
 
-- hosts: kubernetes_master_nodes
+- hosts: kubernetes_master_nodes[0]
   vars:
     podNetwork: "10.244.0.0/16"
     keepAliveIp: 
@@ -24,23 +24,23 @@
       shell:  kubeadm init --config /tmp/kubeadm-config.yml      
       register: kubeadmInitLog
 
-    - name: copy kubeadm log  
-      set_fact:
-        kubeadmInitLogFact: "{{ kubeadmInitLog }}"
+    # - name: copy kubeadm log  
+    #   set_fact:
+    #     kubeadmInitLogFact: "{{ kubeadmInitLog }}"
 
-    - name: get join token
-      shell: echo "{{ kubeadmInitLogFact.stdout }}" > /root/kubeadm-init-output.txt && cat /root/kubeadm-init-output.txt | grep -i "kubeadm join" > /root/kubeadm-token.txt
+    # - name: get join token
+    #   shell: echo "{{ kubeadmInitLogFact.stdout }}" > /root/kubeadm-init-output.txt && cat /root/kubeadm-init-output.txt | grep -i "kubeadm join" > /root/kubeadm-token.txt
 
-    - name: create kube home directory
-      shell: mkdir -p $HOME/.kube  
+    # - name: create kube home directory
+    #   shell: mkdir -p $HOME/.kube  
 
-    - name: copy kube config
-      shell: cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-      become: true
+    # - name: copy kube config
+    #   shell: cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    #   become: true
 
-    - name: fix kube config ownership
-      shell: chown $(id -u):$(id -g) $HOME/.kube/config
-      become: true  
+    # - name: fix kube config ownership
+    #   shell: chown $(id -u):$(id -g) $HOME/.kube/config
+    #   become: true  
 
-    - name: install kubernetes dns
-      shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+    # - name: install kubernetes dns
+    #   shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml

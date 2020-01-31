@@ -1,0 +1,43 @@
+---
+all:
+  hosts:
+    loadbalancer.local:
+      ansible_host: 10.0.10.10
+      ansible_user: root
+      ansible_ssh_pass: 'sead2301'
+      ansible_become_pass: 'sead2301'
+    scape-master-1.local:
+      ansible_host: 10.0.10.11
+      ansible_user: root
+      ansible_ssh_pass: 'sead2301'
+      ansible_become_pass: 'sead2301'
+    scape-master-2.local:
+      ansible_host: 10.0.10.12
+      ansible_user: root
+      ansible_ssh_pass: 'sead2301'
+      ansible_become_pass: 'sead2301'
+    scape-worker-1.local:
+      ansible_host: 10.0.10.21
+      ansible_user: root
+      ansible_ssh_pass: 'sead2301'
+      ansible_become_pass: 'sead2301'
+    scape-worker-2.local:
+      ansible_host: 10.0.10.22
+      ansible_user: root
+      ansible_ssh_pass: 'sead2301'
+      ansible_become_pass: 'sead2301'
+  children:
+    kubernetes:
+      hosts:
+        scape-master-1.local:
+        scape-master-2.local:
+        scape-worker-1.local:
+        scape-worker-2.local:
+    kubernetes_master_nodes:
+      hosts:
+        scape-master-1.local:
+        scape-master-2.local:
+    kubernetes_worker_nodes:
+      hosts:
+        scape-worker-1.local:
+        scape-worker-2.local:

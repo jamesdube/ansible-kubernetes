@@ -1,0 +1,7 @@
+---
+- import_playbook: loadbalancers.yml
+- import_playbook: base.yml
+- import_playbook: configs.yml
+- import_playbook: endpoints.yml
+- import_playbook: core.yml
+- import_playbook: providers.yml

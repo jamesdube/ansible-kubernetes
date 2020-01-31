@@ -1,0 +1,5 @@
+dbHost: 192.168.106.85
+gitlabHost: 192.168.106.199
+cvbsHost: 172.27.101.133
+minHeapSize: 1024
+maxHeapSize: 10240

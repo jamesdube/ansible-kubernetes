@@ -10,7 +10,7 @@ vrrp_script CheckK8sMaster {
 }
 vrrp_instance VI_1 {
     state BACKUP
-    interface eth0
+    interface ens34
     virtual_router_id 61
     priority 80
     advert_int 1

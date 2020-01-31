@@ -1,0 +1,8 @@
+---
+- hosts: core
+  tasks:
+    - name: enable and start core service
+      systemd:
+        name: epay-core
+        state: started
+      become: true

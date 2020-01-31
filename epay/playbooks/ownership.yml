@@ -1,0 +1,10 @@
+---
+- hosts: configservers, endpoints, core, providers
+  vars_files:
+    - ../vars/production.yml
+  tasks:
+    - name: Change file ownership, group and permissions
+      file:
+        path: /data
+        owner: developer
+        group: developer
