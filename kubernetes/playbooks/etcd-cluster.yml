@@ -83,7 +83,7 @@
 
     - name: copy extracted files
       copy:
-        src: ./etcd-v3.3.4-linux-amd64/etcd
+        src: ./etcd-v3.3.4-linux-amd64/etcd*
         dest: /usr/local/bin/
         remote_src: yes
       become: true
